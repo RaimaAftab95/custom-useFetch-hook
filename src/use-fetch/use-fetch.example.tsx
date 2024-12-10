@@ -63,81 +63,91 @@ export default function UseFetchExample() {
     immediate: true,
   });
 
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => {
-          if (url === pikachuURL) {
-            updateUrl(charizardURL);
-          }
-          else {
-            updateUrl(pikachuURL);
-          }
-        }}
-      >
-        Switch Pokemon
-      </button>
-      {loading && <progress />}
-      {error && <h1>{error}</h1>}
-      {data && (
-        <article>
-          <header style={{ textTransform: "capitalize" }}>
-            #
-            {data.id}
-            {" "}
-            -
-            {" "}
-            {data.name}
-          </header>
-          <div>
-            <img src={data.sprites.front_default} />
-            <img src={data.sprites.back_default} />
-          </div>
-          <hr />
-          <dl>
-            <dt>Height</dt>
-            <dd>
-              {data.height / 10}
+  if (loading) {
+    return <progress />;
+  }
+
+  if (error) {
+    return <h1>{error}</h1>;
+  }
+
+  if (data) {
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => {
+            if (url === pikachuURL) {
+              updateUrl(charizardURL);
+            }
+            else {
+              updateUrl(pikachuURL);
+            }
+          }}
+        >
+          Switch Pokemon
+        </button>
+        {loading && <progress />}
+        {error && <h1>{error}</h1>}
+        {data && (
+          <article>
+            <header style={{ textTransform: "capitalize" }}>
+              #
+              {data.id}
               {" "}
-              m
-            </dd>
-          </dl>
-          <dl>
-            <dt>Weight</dt>
-            <dd>
-              {data.weight / 10}
+              -
               {" "}
-              kg
-            </dd>
-          </dl>
-          <dl>
-            <dt>Abilities</dt>
-            <dd>{data.abilities.map(ability => ability.ability.name).join(", ")}</dd>
-          </dl>
-          <dl>
-            <dt>Cry</dt>
-            <dd><audio src={data.cries.latest} controls /></dd>
-          </dl>
-          <hr />
-          <table className="striped">
-            <thead>
-              <tr>
-                <th scope="col">Stat</th>
-                <th scope="col">Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.stats.map(stat => (
-                <tr key={stat.stat.name}>
-                  <th scope="row">{stat.stat.name}</th>
-                  <td>{stat.base_stat}</td>
+              {data.name}
+            </header>
+            <div>
+              <img src={data.sprites.front_default} />
+              <img src={data.sprites.back_default} />
+            </div>
+            <hr />
+            <dl>
+              <dt>Height</dt>
+              <dd>
+                {data.height / 10}
+                {" "}
+                m
+              </dd>
+            </dl>
+            <dl>
+              <dt>Weight</dt>
+              <dd>
+                {data.weight / 10}
+                {" "}
+                kg
+              </dd>
+            </dl>
+            <dl>
+              <dt>Abilities</dt>
+              <dd>{data.abilities.map(ability => ability.ability.name).join(", ")}</dd>
+            </dl>
+            <dl>
+              <dt>Cry</dt>
+              <dd><audio src={data.cries.latest} controls /></dd>
+            </dl>
+            <hr />
+            <table className="striped">
+              <thead>
+                <tr>
+                  <th scope="col">Stat</th>
+                  <th scope="col">Value</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </article>
-      )}
-    </>
-  );
+              </thead>
+              <tbody>
+                {data.stats.map(stat => (
+                  <tr key={stat.stat.name}>
+                    <th scope="row">{stat.stat.name}</th>
+                    <td>{stat.base_stat}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </article>
+        )}
+      </>
+    );
+  }
 }
