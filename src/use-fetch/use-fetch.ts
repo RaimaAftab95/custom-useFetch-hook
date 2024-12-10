@@ -25,9 +25,13 @@ export default function useFetch<T>(
 ): UseFetchReturn<T> {
   // second test
   const [loading, setloading] = useState(false);
+  const [data, setData] = useState<T | null>(null);// means this generic data can be of type T or null
+
   const load = useCallback (async () => {
     setloading(true);
-    await fetch(initialUrl);
+    const response = await fetch(initialUrl);
+    const json = await response.json();
+    setData(json);
     setloading(false);
   }, [initialUrl]);
 
@@ -40,7 +44,7 @@ export default function useFetch<T>(
     url: "",
     loading,
     error: null,
-    data: null,
+    data,
     load,
     updateUrl: () => {},
     updateOptions: () => {},
