@@ -60,7 +60,7 @@ export default function UseFetchExample() {
       accept: "application/json",
     },
   }, {
-    immediate: true,
+    immediate: false,
   });
 
   if (loading) {

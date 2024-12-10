@@ -26,6 +26,7 @@ export default function useFetch<T>(
   // second test
   const [loading, setloading] = useState(false);
   const [data, setData] = useState<T | null>(null);// means this generic data can be of type T or null
+  const [Options, setOptions] = useState(initialOptions || { immediate: true });// id dont pass any option then immediate will be the default option
 
   const load = useCallback (async () => {
     setloading(true);
@@ -37,8 +38,10 @@ export default function useFetch<T>(
 
   // first test
   useEffect(() => {
-    load();
-  }, [load]);
+    if (Options.immediate) {
+      load();
+    }
+  }, [load, Options]);
 
   return {
     url: "",
