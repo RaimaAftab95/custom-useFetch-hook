@@ -1,7 +1,7 @@
 // This is the file you need to update
 
 import type { Dispatch, SetStateAction } from "react";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export type UseFetchOptions = {
   immediate: boolean;
@@ -23,16 +23,25 @@ export default function useFetch<T>(
   initialRequestOptions?: RequestInit,
   initialOptions?: UseFetchOptions,
 ): UseFetchReturn<T> {
-  useEffect(() => {
-    fetch(initialUrl);
+  // second test
+  const [loading, setloading] = useState(false);
+  const load = useCallback (async () => {
+    setloading(true);
+    await fetch(initialUrl);
+    setloading(false);
   }, [initialUrl]);
+
+  // first test
+  useEffect(() => {
+    load();
+  }, [load]);
 
   return {
     url: "",
-    loading: false,
+    loading,
     error: null,
     data: null,
-    load: async () => {},
+    load,
     updateUrl: () => {},
     updateOptions: () => {},
     updateRequestOptions: () => {},
