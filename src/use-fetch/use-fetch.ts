@@ -34,14 +34,19 @@ export default function useFetch<T>(
   const load = useCallback (async () => {
     if (!url) {
       setError("Empty URL");
-      // setloading(false);
       return;
     }
     setloading(true);
-    // setError(null);
-    const response = await fetch(url, requestOptions);
-    const json = await response.json();
-    setData(json);
+    try {
+      const response = await fetch(url, requestOptions);
+      const json = await response.json();
+      setData(json);
+    }
+    catch (e) {
+      const error = e as Error;
+      setError(error.message);
+    }
+
     setloading(false);
   }, [url, requestOptions]);
 
