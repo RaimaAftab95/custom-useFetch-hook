@@ -24,6 +24,7 @@ export default function useFetch<T>(
   initialOptions?: UseFetchOptions,
 ): UseFetchReturn<T> {
   // second test
+  const [error, setError] = useState<string | null>(null);
   const [loading, setloading] = useState(false);
   const [data, setData] = useState<T | null>(null);// means this generic data can be of type T or null
   const [Options, updateOptions] = useState(initialOptions || { immediate: true });// id dont pass any option then immediate will be the default option
@@ -31,8 +32,14 @@ export default function useFetch<T>(
   const [url, updateUrl] = useState(initialUrl);
 
   const load = useCallback (async () => {
+    if (!url) {
+      setError("Empty URL");
+      // setloading(false);
+      return;
+    }
     setloading(true);
-    const response = await fetch(url, initialRequestOptions);
+    // setError(null);
+    const response = await fetch(url, requestOptions);
     const json = await response.json();
     setData(json);
     setloading(false);
@@ -46,9 +53,9 @@ export default function useFetch<T>(
   }, [load, Options]);
 
   return {
-    url: "",
+    url,
     loading,
-    error: null,
+    error,
     data,
     load,
     updateUrl,

@@ -88,7 +88,7 @@ describe("useFetch", () => {
       expect(mocks.fetch).toHaveBeenCalledTimes(1);
     });
 
-    it.skip("should set error if url empty", async () => {
+    it("should set error if url empty", async () => {
       const { result } = renderHook(() => useFetch<Data>(""));
 
       await act(() => {
