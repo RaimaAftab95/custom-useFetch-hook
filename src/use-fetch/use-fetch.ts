@@ -43,10 +43,13 @@
 //     // and set new abortcontroller
 //     // setAbortController(new AbortController());
 //     // setData(null);
+//     // setloading(true);
 
 //     // for  Cleanup on Unmount
 
 //     setData(null); // Clear data state
+//     setloading(true);
+//     // setError(null);
 
 //     if (!url) {
 //       setError("Empty URL");
@@ -116,10 +119,12 @@
 //   };
 // }
 
+// all test passed
+import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export type UseFetchOptions = {
-  immediate?: boolean;
+  immediate: boolean;
 };
 
 export type UseFetchReturn<T> = {
@@ -128,9 +133,9 @@ export type UseFetchReturn<T> = {
   data: T | null;
   url: string;
   load: () => Promise<void>;
-  updateUrl: React.Dispatch<React.SetStateAction<string>>;
-  updateOptions: React.Dispatch<React.SetStateAction<UseFetchOptions>>;
-  updateRequestOptions: React.Dispatch<React.SetStateAction<RequestInit | undefined>>;
+  updateUrl: Dispatch<SetStateAction<string>>;
+  updateOptions: Dispatch<SetStateAction<UseFetchOptions>>;
+  updateRequestOptions: Dispatch<SetStateAction<RequestInit | undefined>>;
 };
 
 export default function useFetch<T>(
@@ -138,35 +143,36 @@ export default function useFetch<T>(
   initialRequestOptions?: RequestInit,
   initialOptions?: UseFetchOptions,
 ): UseFetchReturn<T> {
-  const [url, updateUrl] = useState(initialUrl);
-  const [options, updateOptions] = useState(initialOptions || { immediate: true });
-  const [requestOptions, updateRequestOptions] = useState<RequestInit | undefined>(initialRequestOptions);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [data, setData] = useState<T | null>(null);
+  const [options, updateOptions] = useState(initialOptions || { immediate: true });
+  const [requestOptions, updateRequestOptions] = useState(initialRequestOptions);
+  const [url, updateUrl] = useState(initialUrl);
 
   const abortController = useRef<AbortController | null>(null);
 
   const load = useCallback(async () => {
+    if (abortController.current) {
+      abortController.current.abort();
+    }
+
+    abortController.current = new AbortController();
+    setData(null);
+    setError(null);
+    setLoading(true);
+
     if (!url.trim()) {
       setError("Empty URL");
       setLoading(false);
       return;
     }
 
-    if (abortController.current) {
-      abortController.current.abort();
-    }
-
-    abortController.current = new AbortController();
-    setLoading(true);
-    setError(null);
-    setData(null);
-
     try {
+      const currentAbortController = abortController.current;
       const response = await fetch(url, {
         ...requestOptions,
-        signal: abortController.current.signal,
+        signal: currentAbortController.signal,
       });
 
       if (!response.ok) {
@@ -174,9 +180,15 @@ export default function useFetch<T>(
       }
 
       const json = await response.json();
+
+      // Check if the request was aborted before setting the data
+      if (currentAbortController.signal.aborted) {
+        return;
+      }
+
       setData(json);
     }
-    catch (e: unknown) {
+    catch (e) {
       const error = e as Error;
       if (error.name !== "AbortError") {
         setError(error.message);
@@ -192,6 +204,7 @@ export default function useFetch<T>(
       load();
     }
 
+    // Cleanup: abort ongoing request on component unmount
     return () => {
       abortController.current?.abort();
     };
@@ -208,3 +221,97 @@ export default function useFetch<T>(
     updateRequestOptions,
   };
 }
+
+// all  test passed
+// import { useCallback, useEffect, useRef, useState } from "react";
+
+// export type UseFetchOptions = {
+//   immediate?: boolean;
+// };
+
+// export type UseFetchReturn<T> = {
+//   loading: boolean;
+//   error: string | null;
+//   data: T | null;
+//   url: string;
+//   load: () => Promise<void>;
+//   updateUrl: React.Dispatch<React.SetStateAction<string>>;
+//   updateOptions: React.Dispatch<React.SetStateAction<UseFetchOptions>>;
+//   updateRequestOptions: React.Dispatch<React.SetStateAction<RequestInit | undefined>>;
+// };
+
+// export default function useFetch<T>(
+//   initialUrl: string,
+//   initialRequestOptions?: RequestInit,
+//   initialOptions?: UseFetchOptions,
+// ): UseFetchReturn<T> {
+//   const [url, updateUrl] = useState(initialUrl);
+//   const [options, updateOptions] = useState(initialOptions || { immediate: true });
+//   const [requestOptions, updateRequestOptions] = useState<RequestInit | undefined>(initialRequestOptions);
+//   const [loading, setLoading] = useState(false);
+//   const [error, setError] = useState<string | null>(null);
+//   const [data, setData] = useState<T | null>(null);
+
+//   const abortController = useRef<AbortController | null>(null);
+
+//   const load = useCallback(async () => {
+//     if (!url.trim()) {
+//       setError("Empty URL");
+//       setLoading(false);
+//       return;
+//     }
+
+//     if (abortController.current) {
+//       abortController.current.abort();
+//     }
+
+//     abortController.current = new AbortController();
+//     setLoading(true);
+//     setError(null);
+//     setData(null);
+
+//     try {
+//       const response = await fetch(url, {
+//         ...requestOptions,
+//         signal: abortController.current.signal,
+//       });
+
+//       if (!response.ok) {
+//         throw new Error(response.statusText);
+//       }
+
+//       const json = await response.json();
+//       setData(json);
+//     }
+//     catch (e: unknown) {
+//       const error = e as Error;
+//       if (error.name !== "AbortError") {
+//         setError(error.message);
+//       }
+//     }
+//     finally {
+//       setLoading(false);
+//     }
+//   }, [url, requestOptions]);
+
+//   useEffect(() => {
+//     if (options.immediate) {
+//       load();
+//     }
+
+//     return () => {
+//       abortController.current?.abort();
+//     };
+//   }, [load, options]);
+
+//   return {
+//     url,
+//     loading,
+//     error,
+//     data,
+//     load,
+//     updateUrl,
+//     updateOptions,
+//     updateRequestOptions,
+//   };
+// }
